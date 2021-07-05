@@ -88,7 +88,7 @@ import mix from '@ckeditor/ckeditor5-utils/src/mix';
  *		// You will convert inserting a "paragraph" model element into the model.
  *		downcastDispatcher.on( 'insert:paragraph', ( evt, data, conversionApi ) => {
  *			// Remember to check whether the change has not been consumed yet and consume it.
- *			if ( conversionApi.consumable.consume( data.item, 'insert' ) ) {
+ *			if ( !conversionApi.consumable.consume( data.item, 'insert' ) ) {
  *				return;
  *			}
  *
@@ -341,6 +341,8 @@ export default class DowncastDispatcher {
 		this.fire( 'selection', { selection }, this.conversionApi );
 
 		if ( !selection.isCollapsed ) {
+			this._clearConversionApi();
+
 			return;
 		}
 
@@ -414,6 +416,8 @@ export default class DowncastDispatcher {
 		// Do not fire events for each item inside the range if the range got consumed.
 		//
 		if ( !consumable.test( markerRange, eventName ) ) {
+			this._clearConversionApi();
+
 			return;
 		}
 
