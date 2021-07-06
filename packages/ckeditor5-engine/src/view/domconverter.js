@@ -464,7 +464,8 @@ export default class DomConverter {
 				}
 
 				// Treat this element's content as a raw data if it was registered as such.
-				if ( options.withChildren !== false && this._rawContentElementMatcher.match( viewElement ) ) {
+				// Comment node is also treated as an element with raw data.
+				if ( this._isViewElementWithRawContent( viewElement, options ) || this.isComment( domNode ) ) {
 					const rawContent = this.isComment( domNode ) ? domNode.data : domNode.innerHTML;
 
 					viewElement._setCustomProperty( '$rawContent', rawContent );
@@ -1307,7 +1308,7 @@ export default class DomConverter {
 	 *
 	 * @private
 	 * @param {Node} node DOM node to check.
-	 * @param {Object} options See {@link module:engine/view/domconverter~DomConverter#domToView} options parameter.
+	 * @param {Object} options Conversion options. See {@link module:engine/view/domconverter~DomConverter#domToView} options parameter.
 	 * @returns {Element}
 	 */
 	_createViewElement( node, options ) {
@@ -1318,6 +1319,17 @@ export default class DomConverter {
 		const viewName = options.keepOriginalCase ? node.tagName : node.tagName.toLowerCase();
 
 		return new ViewElement( this.document, viewName );
+	}
+
+	/**
+	 * Checks if view element's content should be treated as a raw data.
+	 *
+	 * @param {Element} viewElement View element to check.
+	 * @param {Object} options Conversion options. See {@link module:engine/view/domconverter~DomConverter#domToView} options parameter.
+	 * @returns {Boolean}
+	 */
+	_isViewElementWithRawContent( viewElement, options ) {
+		return options.withChildren !== false && this._rawContentElementMatcher.match( viewElement );
 	}
 }
 

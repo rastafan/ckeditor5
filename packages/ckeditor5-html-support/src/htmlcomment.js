@@ -31,10 +31,6 @@ export default class HtmlComment extends Plugin {
 	init() {
 		const editor = this.editor;
 
-		editor.data.registerRawContentMatcher( {
-			name: '$comment'
-		} );
-
 		// Convert the `$comment` view element to `$comment:<unique id>` marker and store its content (the comment itself) as a $root
 		// atribute. The comment content is needed in the `dataDowncast` pipeline to re-create the comment node.
 		editor.conversion.for( 'upcast' ).elementToMarker( {
