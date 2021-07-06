@@ -243,7 +243,7 @@ export default {
 		{
 			model: 'htmlDiv',
 			view: 'div',
-			textModel: 'htmlDivInline',
+			paragraphLikeModel: 'htmlDivParagraph',
 			modelSchema: {
 				inheritAllFrom: '$htmlSection'
 			}
