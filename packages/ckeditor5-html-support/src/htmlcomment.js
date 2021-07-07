@@ -61,5 +61,33 @@ export default class HtmlComment extends Plugin {
 				return comment;
 			}
 		} );
+
+		// Remove comments' markers and their corresponding $root attributes, which are no longer present.
+		editor.model.document.registerPostFixer( writer => {
+			const root = editor.model.document.getRoot();
+
+			const changedMarkers = editor.model.document.differ.getChangedMarkers();
+
+			const changedCommentMarkers = changedMarkers.filter( marker => {
+				return marker.name.startsWith( '$comment' );
+			} );
+
+			const removedCommentMarkers = changedCommentMarkers.filter( marker => {
+				const newRange = marker.data.newRange;
+
+				return newRange && newRange.root.rootName === '$graveyard';
+			} );
+
+			if ( removedCommentMarkers.length === 0 ) {
+				return false;
+			}
+
+			for ( const marker of removedCommentMarkers ) {
+				writer.removeMarker( marker.name );
+				writer.removeAttribute( marker.name, root );
+			}
+
+			return true;
+		} );
 	}
 }
