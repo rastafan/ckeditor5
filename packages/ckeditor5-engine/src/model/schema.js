@@ -18,23 +18,23 @@ import Text from './text';
 import TreeWalker from './treewalker';
 
 /**
- * The model's schema. It defines allowed and disallowed structures of nodes as well as nodes' attributes.
- * The schema is usually defined by features and based on them the editing framework and features
- * make decisions how to change and process the model.
+ * The model's schema. It defines the allowed and disallowed structures of nodes as well as nodes' attributes.
+ * The schema is usually defined by the features and based on them, the editing framework and features
+ * make decisions on how to change and process the model.
  *
  * The instance of schema is available in {@link module:engine/model/model~Model#schema `editor.model.schema`}.
  *
  * Read more about the schema in:
  *
- * * {@glink framework/guides/architecture/editing-engine#schema Schema} section of the
- * {@glink framework/guides/architecture/editing-engine Introduction to the Editing engine architecture}.
- * * {@glink framework/guides/deep-dive/schema Schema deep dive} guide.
+ * * The {@glink framework/guides/architecture/editing-engine#schema schema section} of the
+ * {@glink framework/guides/architecture/editing-engine Introduction to the Editing engine architecture} guide.
+ * * The {@glink framework/guides/deep-dive/schema Schema deep dive} guide.
  *
  * @mixes module:utils/observablemixin~ObservableMixin
  */
 export default class Schema {
 	/**
-	 * Creates schema instance.
+	 * Creates a schema instance.
 	 */
 	constructor() {
 		this._sourceDefinitions = {};
@@ -61,7 +61,7 @@ export default class Schema {
 	}
 
 	/**
-	 * Registers schema item. Can only be called once for every item name.
+	 * Registers a schema item. Can only be called once for every item name.
 	 *
 	 *		schema.register( 'paragraph', {
 	 *			inheritAllFrom: '$block'
@@ -205,6 +205,7 @@ export default class Schema {
 	 *		schema.isRegistered( 'foo' ); // -> false
 	 *
 	 * @param {module:engine/model/item~Item|module:engine/model/schema~SchemaContextItem|String} item
+ 	 * @returns {Boolean}
 	 */
 	isRegistered( item ) {
 		return !!this.getDefinition( item );
@@ -220,10 +221,11 @@ export default class Schema {
 	 *		const paragraphElement = writer.createElement( 'paragraph' );
 	 *		schema.isBlock( paragraphElement ); // -> true
 	 *
-	 * See the {@glink framework/guides/deep-dive/schema#block-elements Block elements} section of the Schema deep dive
-	 * guide for more details.
+	 * See the {@glink framework/guides/deep-dive/schema#block-elements Block elements} section of
+	 * the {@glink framework/guides/deep-dive/schema Schema deep dive} guide for more details.
 	 *
 	 * @param {module:engine/model/item~Item|module:engine/model/schema~SchemaContextItem|String} item
+  	 * @returns {Boolean}
 	 */
 	isBlock( item ) {
 		const def = this.getDefinition( item );
@@ -245,10 +247,11 @@ export default class Schema {
 	 *		schema.isLimit( editor.model.document.getRoot() ); // -> true
 	 *		schema.isLimit( 'imageBlock' ); // -> true
 	 *
-	 * See the {@glink framework/guides/deep-dive/schema#limit-elements Limit elements} section of the Schema deep dive
-	 * guide for more details.
+	 * See the {@glink framework/guides/deep-dive/schema#limit-elements Limit elements} section of
+	 * the {@glink framework/guides/deep-dive/schema Schema deep dive} guide for more details.
 	 *
 	 * @param {module:engine/model/item~Item|module:engine/model/schema~SchemaContextItem|String} item
+  	 * @returns {Boolean}
 	 */
 	isLimit( item ) {
 		const def = this.getDefinition( item );
@@ -274,10 +277,11 @@ export default class Schema {
 	 *		const imageElement = writer.createElement( 'imageBlock' );
 	 *		schema.isObject( imageElement ); // -> true
 	 *
-	 * See the {@glink framework/guides/deep-dive/schema#object-elements Object elements} section of the Schema deep dive
-	 * guide for more details.
+	 * See the {@glink framework/guides/deep-dive/schema#object-elements Object elements} section of
+	 * the {@glink framework/guides/deep-dive/schema Schema deep dive} guide for more details.
 	 *
 	 * @param {module:engine/model/item~Item|module:engine/model/schema~SchemaContextItem|String} item
+  	 * @returns {Boolean}
 	 */
 	isObject( item ) {
 		const def = this.getDefinition( item );
@@ -301,10 +305,11 @@ export default class Schema {
 	 *		const text = writer.createText( 'foo' );
 	 *		schema.isInline( text ); // -> true
 	 *
-	 * See the {@glink framework/guides/deep-dive/schema#inline-elements Inline elements} section of the Schema deep dive
-	 * guide for more details.
+	 * See the {@glink framework/guides/deep-dive/schema#inline-elements Inline elements} section of
+	 * the {@glink framework/guides/deep-dive/schema Schema deep dive} guide for more details.
 	 *
 	 * @param {module:engine/model/item~Item|module:engine/model/schema~SchemaContextItem|String} item
+	 * @returns {Boolean}
 	 */
 	isInline( item ) {
 		const def = this.getDefinition( item );
@@ -324,10 +329,11 @@ export default class Schema {
 	 *		const text = writer.createText( 'foo' );
 	 *		schema.isSelectable( text ); // -> false
 	 *
-	 * See the {@glink framework/guides/deep-dive/schema#selectable-elements Selectable elements section} of the Schema deep dive
-	 * guide for more details.
+	 * See the {@glink framework/guides/deep-dive/schema#selectable-elements Selectable elements section} of
+	 * the {@glink framework/guides/deep-dive/schema Schema deep dive} guide for more details.
 	 *
 	 * @param {module:engine/model/item~Item|module:engine/model/schema~SchemaContextItem|String} item
+	 * @returns {Boolean}
 	 */
 	isSelectable( item ) {
 		const def = this.getDefinition( item );
@@ -351,10 +357,11 @@ export default class Schema {
 	 *		const text = writer.createText( 'foo' );
 	 *		schema.isContent( text ); // -> true
 	 *
-	 * See the {@glink framework/guides/deep-dive/schema#content-elements Content elements section} of the Schema deep dive
-	 * guide for more details.
+	 * See the {@glink framework/guides/deep-dive/schema#content-elements Content elements section} of
+	 * the {@glink framework/guides/deep-dive/schema Schema deep dive} guide for more details.
 	 *
 	 * @param {module:engine/model/item~Item|module:engine/model/schema~SchemaContextItem|String} item
+	 * @returns {Boolean}
 	 */
 	isContent( item ) {
 		const def = this.getDefinition( item );
@@ -384,6 +391,7 @@ export default class Schema {
 	 * @fires checkChild
 	 * @param {module:engine/model/schema~SchemaContextDefinition} context The context in which the child will be checked.
 	 * @param {module:engine/model/node~Node|String} def The child to check.
+	 * @returns {Boolean}
 	 */
 	checkChild( context, def ) {
 		// Note: context and child are already normalized here to a SchemaContext and SchemaCompiledItemDefinition.
@@ -408,6 +416,7 @@ export default class Schema {
 	 * @fires checkAttribute
 	 * @param {module:engine/model/schema~SchemaContextDefinition} context The context in which the attribute will be checked.
 	 * @param {String} attributeName
+	 * @returns {Boolean}
 	 */
 	checkAttribute( context, attributeName ) {
 		const def = this.getDefinition( context.last );
@@ -1234,7 +1243,8 @@ mix( Schema, ObservableMixin );
  * Most block type items will inherit from `$block` (through `inheritAllFrom`).
  *
  * Read more about the block elements in the
- * {@glink framework/guides/deep-dive/schema#block-elements Block elements section} of the Schema deep dive guide.
+ * {@glink framework/guides/deep-dive/schema#block-elements Block elements section} of
+ * the {@glink framework/guides/deep-dive/schema Schema deep dive}.
  *
  * @property {Boolean} isInline
  * Whether an item is "text-like" and should be treated as an inline node. Examples of inline elements:
@@ -1249,7 +1259,8 @@ mix( Schema, ObservableMixin );
  * a limit element are limited to its content.
  *
  * Read more about the limit elements in the
- * {@glink framework/guides/deep-dive/schema#limit-elements Limit elements section} of the Schema deep dive guide.
+ * {@glink framework/guides/deep-dive/schema#limit-elements Limit elements section} of
+ * the {@glink framework/guides/deep-dive/schema Schema deep dive} guide.
  *
  * @property {Boolean} isObject
  * Whether an item is "self-contained" and should be treated as a whole. Examples of object elements:
@@ -1269,7 +1280,8 @@ mix( Schema, ObservableMixin );
  * {@link module:engine/model/schema~Schema#isSelectable `isSelectable()`} returns `true` for object elements automatically.
  *
  * Read more about selectable elements in the
- * {@glink framework/guides/deep-dive/schema#selectable-elements Selectable elements section} of the Schema deep dive guide.
+ * {@glink framework/guides/deep-dive/schema#selectable-elements Selectable elements section} of
+ * the {@glink framework/guides/deep-dive/schema Schema deep dive} guide.
  *
  * @property {Boolean} isContent
  * An item is a content when it always finds its way to the editor data output regardless of the number and type of its descendants.
@@ -1279,7 +1291,8 @@ mix( Schema, ObservableMixin );
  * {@link module:engine/model/schema~Schema#isContent `isContent()`} returns `true` for object elements automatically.
  *
  * Read more about content elements in the
- * {@glink framework/guides/deep-dive/schema#content-elements Content elements section} of the Schema deep dive guide.
+ * {@glink framework/guides/deep-dive/schema#content-elements Content elements section} of
+ * the {@glink framework/guides/deep-dive/schema Schema deep dive} guide.
  */
 
 /**

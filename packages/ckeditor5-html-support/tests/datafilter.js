@@ -13,6 +13,7 @@ import testUtils from '@ckeditor/ckeditor5-core/tests/_utils/utils';
 import { expectToThrowCKEditorError } from '@ckeditor/ckeditor5-utils/tests/_utils/utils';
 import { getData as getModelData } from '@ckeditor/ckeditor5-engine/src/dev-utils/model';
 import { getModelDataWithAttributes } from './_utils/utils';
+import { addBackgroundRules } from '@ckeditor/ckeditor5-engine/src/view/styles/background';
 
 import GeneralHtmlSupport from '../src/generalhtmlsupport';
 
@@ -307,13 +308,46 @@ describe( 'DataFilter', () => {
 
 			expect( getObjectModelDataWithAttributes( model, { withoutSelection: true } ) ).to.deep.equal( {
 				data: '<paragraph>' +
-				'<htmlInput htmlContent=""></htmlInput>' +
+				'<htmlInput htmlAttributes="(1)" htmlContent=""></htmlInput>' +
 				'<htmlInput htmlContent=""></htmlInput>' +
 				'</paragraph>',
-				attributes: {}
+				attributes: {
+					1: {
+						classes: [ 'foo' ]
+					}
+				}
 			} );
 
-			expect( editor.getData() ).to.equal( '<p><input><input></p>' );
+			expect( editor.getData() ).to.equal( '<p><input class="foo"><input></p>' );
+		} );
+
+		it( 'should apply attributes to correct editing element', () => {
+			dataFilter.allowElement( 'input' );
+			dataFilter.allowAttributes( { name: 'input', attributes: 'type' } );
+
+			editor.setData( '<p><input type="number"/></p>' );
+
+			const input = editor.editing.view.document.getRoot()
+				.getChild( 0 ) // <p>
+				.getChild( 0 ) // <span>
+				.getChild( 0 ); // <input>
+
+			expect( input.getAttribute( 'type' ) ).to.equal( 'number' );
+		} );
+
+		it( 'should consume htmlAttributes attribute (editing downcast)', () => {
+			const spy = sinon.spy();
+
+			editor.conversion.for( 'editingDowncast' ).add( dispatcher => {
+				dispatcher.on( 'attribute:htmlAttributes:htmlInput', spy );
+			} );
+
+			dataFilter.allowElement( 'input' );
+			dataFilter.allowAttributes( { name: 'input', attributes: 'type' } );
+
+			editor.setData( '<p><input type="number"/></p>' );
+
+			expect( spy.called ).to.be.false;
 		} );
 
 		function getObjectModelDataWithAttributes( model, options ) {
@@ -594,13 +628,17 @@ describe( 'DataFilter', () => {
 			);
 
 			expect( getModelDataWithAttributes( model, { withoutSelection: true } ) ).to.deep.equal( {
-				data: '<htmlSection><paragraph>foo</paragraph></htmlSection>' +
+				data: '<htmlSection htmlAttributes="(1)"><paragraph>foo</paragraph></htmlSection>' +
 					'<htmlSection><paragraph>bar</paragraph></htmlSection>',
-				attributes: {}
+				attributes: {
+					1: {
+						classes: [ 'foo' ]
+					}
+				}
 			} );
 
 			expect( editor.getData() ).to.equal(
-				'<section><p>foo</p></section>' +
+				'<section class="foo"><p>foo</p></section>' +
 				'<section><p>bar</p></section>'
 			);
 		} );
@@ -611,7 +649,7 @@ describe( 'DataFilter', () => {
 				model: 'htmlXyz',
 				allowChildren: 'not-exists',
 				schema: {
-					inheritAllFrom: '$htmlBlock'
+					inheritAllFrom: '$htmlSection'
 				}
 			} );
 
@@ -932,14 +970,16 @@ describe( 'DataFilter', () => {
 			);
 
 			expect( getModelDataWithAttributes( model, { withoutSelection: true } ) ).to.deep.equal( {
-				data: '<paragraph><$text htmlCite="(1)">foobar</$text></paragraph>',
+				data: '<paragraph><$text htmlCite="(1)">foo</$text><$text htmlCite="(2)">bar</$text></paragraph>',
 				attributes: {
-					1: {},
+					1: {
+						classes: [ 'foo' ]
+					},
 					2: {}
 				}
 			} );
 
-			expect( editor.getData() ).to.equal( '<p><cite>foobar</cite></p>' );
+			expect( editor.getData() ).to.equal( '<p><cite class="foo">foo</cite><cite>bar</cite></p>' );
 		} );
 
 		it( 'should not consume attribute already consumed (upcast)', () => {
@@ -1235,11 +1275,41 @@ describe( 'DataFilter', () => {
 			editor.setData( '<p class="foo bar">foo</p><p class="bar">bar</p>' );
 
 			expect( getModelDataWithAttributes( model, { withoutSelection: true } ) ).to.deep.equal( {
-				data: '<paragraph>foo</paragraph><paragraph>bar</paragraph>',
-				attributes: {}
+				data: '<paragraph htmlAttributes="(1)">foo</paragraph><paragraph>bar</paragraph>',
+				attributes: {
+					1: {
+						classes: [ 'foo' ]
+					}
+				}
 			} );
 
-			expect( editor.getData() ).to.equal( '<p>foo</p><p>bar</p>' );
+			expect( editor.getData() ).to.equal( '<p class="foo">foo</p><p>bar</p>' );
+		} );
+
+		it( 'should preserve partially consumed attributes by other features', () => {
+			editor.conversion.for( 'upcast' ).add( dispatcher => {
+				dispatcher.on( 'element:span', ( evt, data, conversionApi ) => {
+					conversionApi.consumable.consume( data.viewItem, { attributes: [ 'data-foo' ] } );
+				} );
+			} );
+
+			dataFilter.allowElement( 'span' );
+			dataFilter.allowAttributes( { name: 'span', attributes: true } );
+
+			editor.setData( '<p><span data-foo data-bar>foobar</span></p>' );
+
+			expect( getModelDataWithAttributes( model, { withoutSelection: true } ) ).to.deep.equal( {
+				data: '<paragraph><$text htmlSpan="(1)">foobar</$text></paragraph>',
+				attributes: {
+					1: {
+						attributes: {
+							'data-bar': ''
+						}
+					}
+				}
+			} );
+
+			expect( editor.getData() ).to.equal( '<p><span data-bar="">foobar</span></p>' );
 		} );
 	} );
 
@@ -1274,6 +1344,17 @@ describe( 'DataFilter', () => {
 		expectToThrowCKEditorError( () => {
 			dataFilter.allowElement( 'xyz' );
 		}, /data-filter-invalid-definition/, null, definition );
+	} );
+
+	it( 'should handle expanded styles by matcher', () => {
+		editor.data.addStyleProcessorRules( addBackgroundRules );
+
+		dataFilter.allowElement( 'p' );
+		dataFilter.allowAttributes( { name: 'p', styles: true } );
+
+		editor.setData( '<p style="background:red;">foobar</p>' );
+
+		expect( editor.getData() ).to.equal( '<p style="background-color:red;">foobar</p>' );
 	} );
 
 	describe( 'loadAllowedConfig', () => {
@@ -1845,7 +1926,7 @@ describe( 'DataFilter', () => {
 			const allowedConfig = [
 				{
 					name: 'span',
-					attributes: true,
+					attributes: /^data-.*$/,
 					// Allow it to really verify that the disallowing works.
 					classes: [ 'foo', 'bar', 'test' ]
 				}

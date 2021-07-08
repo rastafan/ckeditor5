@@ -2,7 +2,7 @@
 category: features-images
 menu-title: Overview
 order: 10
-modified_at: 2021-05-30
+modified_at: 2021-06-17
 ---
 {@snippet features/build-image-source}
 
@@ -164,7 +164,7 @@ ClassicEditor
 		}
 	} )
 ```
-Refer to the {@link features/images-installation image installation guide} for more details on configuring the features available in the toolbar. You can also check the {@link features/toolbar toolbar guide}.
+Refer to the {@link features/images-installation image installation guide} for more details on configuring the features available in the toolbar and to the {@link builds/guides/migration/migration-to-29#image-toolbar toolbar section} of the Migration to v29.x guide, as important changes were introduced in that version. You can also check the {@link features/toolbar editor toolbar} guide.
 
 See the common API of image-related features such as {@link module:image/imagestyle~ImageStyle}, {@link module:image/imageresize~ImageResize}, and {@link module:link/linkimage~LinkImage} to learn more about available image toolbar buttons.
 

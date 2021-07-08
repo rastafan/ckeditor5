@@ -26,7 +26,7 @@ import {
 	viewToModelBlockAttributeConverter,
 	modelToViewBlockAttributeConverter
 } from './converters';
-import { isPlainObject } from 'lodash-es';
+import { isPlainObject, pull as removeItemFromArray } from 'lodash-es';
 
 import '../theme/datafilter.css';
 
@@ -199,7 +199,7 @@ export default class DataFilter extends Plugin {
 	 */
 	_loadConfig( config, handleAttributes ) {
 		for ( const pattern of config ) {
-			// MatcherPattern allows omitting `name` to not narrow searches to specific elements.
+			// MatcherPattern allows omitting `name` to widen the search of elements.
 			// Let's keep it consistent and match every element if a `name` has not been provided.
 			const elementName = pattern.name || /[\s\S]+/;
 
@@ -345,17 +345,18 @@ export default class DataFilter extends Plugin {
 		} );
 		conversion.for( 'upcast' ).add( viewToModelBlockAttributeConverter( definition, this ) );
 
+		conversion.for( 'editingDowncast' ).elementToElement( {
+			model: modelName,
+			view: toObjectWidgetConverter( editor, definition )
+		} );
+
 		conversion.for( 'dataDowncast' ).elementToElement( {
 			model: modelName,
 			view: ( modelElement, { writer } ) => {
 				return createObjectView( viewName, modelElement, writer );
 			}
 		} );
-		conversion.for( 'editingDowncast' ).elementToElement( {
-			model: modelName,
-			view: toObjectWidgetConverter( editor, definition )
-		} );
-		conversion.for( 'downcast' ).add( modelToViewBlockAttributeConverter( definition ) );
+		conversion.for( 'dataDowncast' ).add( modelToViewBlockAttributeConverter( definition ) );
 	}
 
 	/**
@@ -509,6 +510,8 @@ function consumeAttributeMatches( viewElement, { consumable }, matcher ) {
 	const consumedMatches = [];
 
 	for ( const match of matches ) {
+		removeConsumedAttributes( consumable, viewElement, match );
+
 		// We only want to consume attributes, so element can be still processed by other converters.
 		delete match.match.name;
 
@@ -518,6 +521,28 @@ function consumeAttributeMatches( viewElement, { consumable }, matcher ) {
 	}
 
 	return consumedMatches;
+}
+
+// Removes attributes from the given match that were already consumed by other converters.
+//
+// @private
+// @param {module:engine/view/element~Element} viewElement
+// @param {module:engine/conversion/modelconsumable~ModelConsumable} consumable
+// @param {Object} match
+function removeConsumedAttributes( consumable, viewElement, match ) {
+	for ( const key of [ 'attributes', 'classes', 'styles' ] ) {
+		const attributes = match.match[ key ];
+
+		if ( !attributes ) {
+			continue;
+		}
+
+		for ( const value of attributes ) {
+			if ( !consumable.test( viewElement, ( { [ key ]: [ value ] } ) ) ) {
+				removeItemFromArray( attributes, value );
+			}
+		}
+	}
 }
 
 // Merges the result of {@link module:engine/view/matcher~Matcher#matchAll} method.
@@ -556,13 +581,16 @@ function iterableToObject( iterable, getValue ) {
 	const attributesObject = {};
 
 	for ( const prop of iterable ) {
-		attributesObject[ prop ] = getValue( prop );
+		const value = getValue( prop );
+		if ( value !== undefined ) {
+			attributesObject[ prop ] = getValue( prop );
+		}
 	}
 
 	return attributesObject;
 }
 
-// Matcher by default has to match **all** patterns to count it as an actual match. By splitting the pattern
+// Matcher by default has to match **all** patterns to count it as an actual match. Splitting the pattern
 // into separate patterns means that any matched pattern will be count as a match.
 //
 // @private

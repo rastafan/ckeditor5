@@ -88,7 +88,12 @@ export default class DomConverter {
 		 * @readonly
 		 * @member {Array.<String>} module:engine/view/domconverter~DomConverter#blockElements
 		 */
-		this.blockElements = [ 'p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'dd', 'dt', 'figcaption', 'td', 'th' ];
+		this.blockElements = [
+			'address', 'article', 'aside', 'blockquote', 'caption', 'center', 'dd', 'details', 'dir', 'div',
+			'dl', 'dt', 'fieldset', 'figcaption', 'figure', 'footer', 'form', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'header',
+			'hgroup', 'legend', 'li', 'main', 'menu', 'nav', 'ol', 'p', 'pre', 'section', 'summary', 'table', 'tbody',
+			'td', 'tfoot', 'th', 'thead', 'tr', 'ul'
+		];
 
 		/**
 		 * The DOM-to-view mapping.
@@ -459,7 +464,8 @@ export default class DomConverter {
 				}
 
 				// Treat this element's content as a raw data if it was registered as such.
-				if ( options.withChildren !== false && this._rawContentElementMatcher.match( viewElement ) ) {
+				// Comment node is also treated as an element with raw data.
+				if ( this._isViewElementWithRawContent( viewElement, options ) || this.isComment( domNode ) ) {
 					const rawContent = this.isComment( domNode ) ? domNode.data : domNode.innerHTML;
 
 					viewElement._setCustomProperty( '$rawContent', rawContent );
@@ -1302,7 +1308,7 @@ export default class DomConverter {
 	 *
 	 * @private
 	 * @param {Node} node DOM node to check.
-	 * @param {Object} options See {@link module:engine/view/domconverter~DomConverter#domToView} options parameter.
+	 * @param {Object} options Conversion options. See {@link module:engine/view/domconverter~DomConverter#domToView} options parameter.
 	 * @returns {Element}
 	 */
 	_createViewElement( node, options ) {
@@ -1313,6 +1319,17 @@ export default class DomConverter {
 		const viewName = options.keepOriginalCase ? node.tagName : node.tagName.toLowerCase();
 
 		return new ViewElement( this.document, viewName );
+	}
+
+	/**
+	 * Checks if view element's content should be treated as a raw data.
+	 *
+	 * @param {Element} viewElement View element to check.
+	 * @param {Object} options Conversion options. See {@link module:engine/view/domconverter~DomConverter#domToView} options parameter.
+	 * @returns {Boolean}
+	 */
+	_isViewElementWithRawContent( viewElement, options ) {
+		return options.withChildren !== false && this._rawContentElementMatcher.match( viewElement );
 	}
 }
 
@@ -1350,6 +1367,7 @@ function forEachDomNodeAncestor( node, callback ) {
 // A &nbsp; is a block filler only if it is a single child of a block element.
 //
 // @param {Node} domNode DOM node.
+// @param {Array.<String>} blockElements
 // @returns {Boolean}
 function isNbspBlockFiller( domNode, blockElements ) {
 	const isNBSP = domNode.isEqualNode( NBSP_FILLER_REF );
@@ -1360,6 +1378,7 @@ function isNbspBlockFiller( domNode, blockElements ) {
 // Checks if domNode has block parent.
 //
 // @param {Node} domNode DOM node.
+// @param {Array.<String>} blockElements
 // @returns {Boolean}
 function hasBlockParent( domNode, blockElements ) {
 	const parent = domNode.parentNode;
@@ -1374,7 +1393,7 @@ function hasBlockParent( domNode, blockElements ) {
  *
  * * `br` &ndash; For the `<br data-cke-filler="true">` block filler used in the editing view.
  * * `nbsp` &ndash; For the `&nbsp;` block fillers used in the data.
- * * `markedNbsp` &ndash; For the `&nbsp;` block fillers wrapped in a `<span>` element: `<span data-cke-filler="true">&nbsp;</span>`
+ * * `markedNbsp` &ndash; For the `&nbsp;` block fillers wrapped in `<span>` elements: `<span data-cke-filler="true">&nbsp;</span>`
  * used in the data.
  *
  * @typedef {String} module:engine/view/filler~BlockFillerMode

@@ -9,6 +9,7 @@
 
 import { Plugin } from 'ckeditor5/src/core';
 import { toArray } from 'ckeditor5/src/utils';
+import defaultConfig from './schemadefinitions';
 
 /**
  * Holds representation of the extended HTML document type definitions to be used by the
@@ -52,8 +53,6 @@ export default class DataSchema extends Plugin {
 		 * @member {Map.<String, module:html-support/dataschema~DataSchemaDefinition>} #_definitions
 		 */
 		this._definitions = new Map();
-
-		this._registerDefaultDefinitions();
 	}
 
 	/**
@@ -61,6 +60,19 @@ export default class DataSchema extends Plugin {
 	 */
 	static get pluginName() {
 		return 'DataSchema';
+	}
+
+	/**
+	 * @inheritDoc
+	 */
+	init() {
+		for ( const definition of defaultConfig.block ) {
+			this.registerBlockElement( definition );
+		}
+
+		for ( const definition of defaultConfig.inline ) {
+			this.registerInlineElement( definition );
+		}
 	}
 
 	/**
@@ -102,274 +114,6 @@ export default class DataSchema extends Plugin {
 		}
 
 		return definitions;
-	}
-
-	/**
-	 * Registers default data schema definitions.
-	 *
-	 * @private
-	*/
-	_registerDefaultDefinitions() {
-		// Block elements.
-		this.registerBlockElement( {
-			model: '$htmlBlock',
-			modelSchema: {
-				allowChildren: '$block',
-				allowIn: [ '$root', '$htmlBlock' ],
-				isBlock: true
-			}
-		} );
-
-		this.registerBlockElement( {
-			model: 'codeBlock',
-			view: 'pre'
-		} );
-
-		this.registerBlockElement( {
-			model: 'paragraph',
-			view: 'p'
-		} );
-
-		this.registerBlockElement( {
-			model: 'blockQuote',
-			view: 'blockquote'
-		} );
-
-		this.registerBlockElement( {
-			model: 'listItem',
-			view: 'li'
-		} );
-
-		this.registerBlockElement( {
-			model: 'htmlPre',
-			view: 'pre',
-			modelSchema: {
-				inheritAllFrom: '$block'
-			}
-		} );
-
-		this.registerBlockElement( {
-			view: 'article',
-			model: 'htmlArticle',
-			modelSchema: {
-				inheritAllFrom: '$htmlBlock'
-			}
-		} );
-
-		this.registerBlockElement( {
-			view: 'section',
-			model: 'htmlSection',
-			modelSchema: {
-				inheritAllFrom: '$htmlBlock'
-			}
-		} );
-
-		this.registerBlockElement( {
-			view: 'form',
-			model: 'htmlForm',
-			modelSchema: {
-				inheritAllFrom: '$htmlBlock'
-			}
-		} );
-
-		// Add data list elements.
-		this.registerBlockElement( {
-			view: 'dl',
-			model: 'htmlDl',
-			modelSchema: {
-				allowIn: [ '$htmlBlock', '$root' ],
-				isBlock: true
-			}
-		} );
-
-		this.registerBlockElement( {
-			model: '$htmlDatalist',
-			modelSchema: {
-				allowChildren: '$block',
-				allowIn: 'htmlDl',
-				isBlock: true
-			}
-		} );
-
-		this.registerBlockElement( {
-			view: 'dt',
-			model: 'htmlDt',
-			modelSchema: {
-				inheritAllFrom: '$htmlDatalist'
-			}
-		} );
-
-		this.registerBlockElement( {
-			view: 'dd',
-			model: 'htmlDd',
-			modelSchema: {
-				inheritAllFrom: '$htmlDatalist'
-			}
-		} );
-
-		// Add details elements.
-		this.registerBlockElement( {
-			view: 'details',
-			model: 'htmlDetails',
-			modelSchema: {
-				inheritAllFrom: '$htmlBlock'
-			}
-		} );
-
-		this.registerBlockElement( {
-			view: 'summary',
-			model: 'htmlSummary',
-			modelSchema: {
-				allowChildren: '$text',
-				allowIn: 'htmlDetails'
-			}
-		} );
-
-		// Block objects.
-		this.registerBlockElement( {
-			model: '$htmlObjectBlock',
-			isObject: true,
-			modelSchema: {
-				isObject: true,
-				isBlock: true,
-				allowWhere: '$block'
-			}
-		} );
-
-		// Inline elements.
-		this.registerInlineElement( {
-			view: 'code',
-			model: 'htmlCode'
-		} );
-
-		this.registerInlineElement( {
-			view: 'a',
-			model: 'htmlA',
-			priority: 5
-		} );
-
-		this.registerInlineElement( {
-			view: 'strong',
-			model: 'htmlStrong'
-		} );
-
-		this.registerInlineElement( {
-			view: 'i',
-			model: 'htmlI'
-		} );
-
-		this.registerInlineElement( {
-			view: 's',
-			model: 'htmlS'
-		} );
-
-		this.registerInlineElement( {
-			view: 'span',
-			model: 'htmlSpan',
-			attributeProperties: {
-				copyOnEnter: true
-			}
-		} );
-
-		this.registerInlineElement( {
-			view: 'cite',
-			model: 'htmlCite',
-			attributeProperties: {
-				copyOnEnter: true
-			}
-		} );
-
-		this.registerInlineElement( {
-			view: 'label',
-			model: 'htmlLabel',
-			attributeProperties: {
-				copyOnEnter: true
-			}
-		} );
-
-		// Inline objects
-		this.registerInlineElement( {
-			model: '$htmlObjectInline',
-			isObject: true,
-			modelSchema: {
-				isObject: true,
-				isInline: true,
-				allowWhere: '$text',
-				allowAttributesOf: '$text'
-			}
-		} );
-
-		this.registerInlineElement( {
-			view: 'object',
-			model: 'htmlObject',
-			isObject: true,
-			modelSchema: {
-				inheritAllFrom: '$htmlObjectInline'
-			}
-		} );
-
-		this.registerInlineElement( {
-			view: 'iframe',
-			model: 'htmlIframe',
-			isObject: true,
-			modelSchema: {
-				inheritAllFrom: '$htmlObjectInline'
-			}
-		} );
-
-		this.registerInlineElement( {
-			view: 'input',
-			model: 'htmlInput',
-			isObject: true,
-			modelSchema: {
-				inheritAllFrom: '$htmlObjectInline'
-			}
-		} );
-
-		this.registerInlineElement( {
-			view: 'button',
-			model: 'htmlButton',
-			isObject: true,
-			modelSchema: {
-				inheritAllFrom: '$htmlObjectInline'
-			}
-		} );
-
-		this.registerInlineElement( {
-			view: 'textarea',
-			model: 'htmlTextarea',
-			isObject: true,
-			modelSchema: {
-				inheritAllFrom: '$htmlObjectInline'
-			}
-		} );
-
-		this.registerInlineElement( {
-			view: 'select',
-			model: 'htmlSelect',
-			isObject: true,
-			modelSchema: {
-				inheritAllFrom: '$htmlObjectInline'
-			}
-		} );
-
-		this.registerInlineElement( {
-			view: 'video',
-			model: 'htmlVideo',
-			isObject: true,
-			modelSchema: {
-				inheritAllFrom: '$htmlObjectInline'
-			}
-		} );
-
-		this.registerInlineElement( {
-			view: 'audio',
-			model: 'htmlAudio',
-			isObject: true,
-			modelSchema: {
-				inheritAllFrom: '$htmlObjectInline'
-			}
-		} );
 	}
 
 	/**
