@@ -93,17 +93,23 @@ export default class HtmlComment extends Plugin {
 
 	/**
 	 * Creates an HTML comment on the specified position and returns its marker.
+	 *
+	 * @param {module:engine/model/position~Position} position
+	 * @param {String} content
+	 * @param {String} [commentID] An optional comment ID.
+	 *
+	 * @returns {String} Marker ID.
 	 */
-	createHtmlComment( position, content ) {
+	createHtmlComment( position, content, commentID = uid() ) {
 		const editor = this.editor;
 		const model = editor.model;
 		const root = model.document.getRoot();
-		const markerName = `$comment:${ uid() }`;
+		const markerName = `$comment:${ commentID }`;
 
 		return model.change( writer => {
 			const range = writer.createRange( position );
 
-			const marker = writer.addMarker( markerName, {
+			writer.addMarker( markerName, {
 				usingOperation: true,
 				affectsData: true,
 				range
@@ -111,22 +117,25 @@ export default class HtmlComment extends Plugin {
 
 			writer.setAttribute( markerName, content, root );
 
-			return marker;
+			return commentID;
 		} );
 	}
 
 	/**
-	 * Removes an HTML Comment by its marker.
+	 * Removes an HTML Comment for a given comment ID.
 	 *
-	 * @param {String} marker marker to remove.
+	 * @param {String} commentID Comment ID to remove.
 	 */
-	removeHtmlComment( marker ) {
+	removeHtmlComment( commentID ) {
 		const editor = this.editor;
 		const root = editor.model.document.getRoot();
 
+		const markerName = `$comment:${ commentID }`;
+		const marker = editor.model.markers.get( markerName );
+
 		editor.model.change( writer => {
 			writer.removeMarker( marker );
-			writer.removeAttribute( marker.name, root );
+			writer.removeAttribute( markerName, root );
 		} );
 	}
 }
