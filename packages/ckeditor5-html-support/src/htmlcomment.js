@@ -8,7 +8,7 @@
  */
 
 import { Plugin } from 'ckeditor5/src/core';
-import { uid } from 'ckeditor5/src/utils';
+import { CKEditorError, uid } from 'ckeditor5/src/utils';
 
 /**
  * The HTML comment feature.
@@ -94,9 +94,11 @@ export default class HtmlComment extends Plugin {
 	/**
 	 * Creates an HTML comment on the specified position and returns its marker.
 	 *
+	 * *Note*: If two comments are created at the same position, the second comment will be inserted before the first one.
+	 *
 	 * @param {module:engine/model/position~Position} position
 	 * @param {String} content
-	 * @param {String} [commentID] An optional comment ID.
+	 * @param {String} [commentID] An optional comment ID. If not passed the comment ID is auto-generated.
 	 *
 	 * @returns {String} Marker ID.
 	 */
@@ -122,9 +124,9 @@ export default class HtmlComment extends Plugin {
 	}
 
 	/**
-	 * Removes an HTML Comment for a given comment ID.
+	 * Removes an HTML comment with the given comment ID.
 	 *
-	 * @param {String} commentID Comment ID to remove.
+	 * @param {String} commentID The ID of the comment to be removed.
 	 */
 	removeHtmlComment( commentID ) {
 		const editor = this.editor;
@@ -132,6 +134,15 @@ export default class HtmlComment extends Plugin {
 
 		const markerName = `$comment:${ commentID }`;
 		const marker = editor.model.markers.get( markerName );
+
+		if ( !marker ) {
+			/**
+			 * An HTML comment with the given ID does not exist.
+			 *
+			 * @error html-comment-does-not-exist
+			 */
+			throw new CKEditorError( 'html-comment-does-not-exist', null );
+		}
 
 		editor.model.change( writer => {
 			writer.removeMarker( marker );
