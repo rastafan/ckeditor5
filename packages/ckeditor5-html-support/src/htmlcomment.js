@@ -98,15 +98,15 @@ export default class HtmlComment extends Plugin {
 	 *
 	 * @param {module:engine/model/position~Position} position
 	 * @param {String} content
-	 * @param {String} [commentID] An optional comment ID. If not passed the comment ID is auto-generated.
 	 *
-	 * @returns {String} Marker ID.
+	 * @returns {String} Comment ID. This ID can be later used to e.g. remove the comment from the content.
 	 */
-	createHtmlComment( position, content, commentID = uid() ) {
+	createHtmlComment( position, content ) {
+		const id = uid();
 		const editor = this.editor;
 		const model = editor.model;
 		const root = model.document.getRoot();
-		const markerName = `$comment:${ commentID }`;
+		const markerName = `$comment:${ id }`;
 
 		return model.change( writer => {
 			const range = writer.createRange( position );
@@ -119,12 +119,15 @@ export default class HtmlComment extends Plugin {
 
 			writer.setAttribute( markerName, content, root );
 
-			return commentID;
+			return markerName;
 		} );
 	}
 
 	/**
 	 * Removes an HTML comment with the given comment ID.
+	 *
+	 * It throws an error if the comment with the given ID does not exist.
+	 * Note that a comment can be removed also by removing the content in which it is created.
 	 *
 	 * @param {String} commentID The ID of the comment to be removed.
 	 */
@@ -148,5 +151,58 @@ export default class HtmlComment extends Plugin {
 			writer.removeMarker( marker );
 			writer.removeAttribute( markerName, root );
 		} );
+	}
+
+	/**
+	 * Gets the HTML comment with the given ID.
+	 *
+	 * Returns `null` if the comment does not exist.
+	 *
+	 * @param {String} commentID
+	 * @returns {null}
+	 */
+	getHtmlComment( commentID ) {
+		const editor = this.editor;
+		const marker = editor.model.markers.get( commentID );
+		const root = editor.model.document.getRoot();
+
+		if ( !marker ) {
+			return null;
+		}
+
+		return {
+			content: root.getAttribute( commentID ),
+			position: marker.getStart()
+		};
+	}
+
+	updateHtmlComment( commentID, { position, content } ) {
+		const editor = this.editor;
+		const marker = editor.model.markers.get( commentID );
+		const root = editor.model.document.getRoot();
+
+		if ( !marker ) {
+			throw new CKEditorError( 'html-comment-does-not-exist', null );
+		}
+
+		editor.model.change( writer => {
+			if ( position ) {
+				const range = writer.createRange( position );
+
+				writer.updateMarker( marker, { range } );
+			}
+
+			if ( content ) {
+				writer.setAttribute( commentID, content, root );
+			}
+		} );
+	}
+
+	getHtmlCommentsAtPosition( position ) {
+		const intersectingMarkers = Array.from( this.editor.model.markers.getMarkersAtPosition( position ) );
+
+		return intersectingMarkers
+			.filter( marker => marker.name.startsWith( '$comment:' ) )
+			.map( commentMarker => commentMarker.name );
 	}
 }
