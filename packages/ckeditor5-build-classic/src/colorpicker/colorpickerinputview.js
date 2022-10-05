@@ -135,7 +135,7 @@ export default class ColorpickerInputView extends View {
 			tag: 'input',
 			attributes: {
 				/* type: 'color', */
-				'data-jscolor': "{}",
+				/* 'data-jscolor': "{}", */
 				class: [
 					'ck',
 					'ck-input',
@@ -157,7 +157,7 @@ export default class ColorpickerInputView extends View {
 			}
 		});
 
-		
+
 		//inputField.delegate('input').to(this, 'input');
 		inputField.on('input', (eventInfo, event) => {
 			this.fire('input', {
@@ -165,13 +165,14 @@ export default class ColorpickerInputView extends View {
 			});
 		});
 
-		inputField.on('render', (eventInfo) => {
+		// Il JSColor viene instanziato all'apertura del dropdown.
+		/* inputField.on('render', (eventInfo) => {
 
 			console.log('EVENT : ' , eventInfo);
 			console.log('ELEMENT : ' , eventInfo.source);
-		
+
 			new JSColor(eventInfo.source.element);
-		});
+		}); */
 
 		this.items.add(inputField);
 
@@ -234,7 +235,12 @@ export default class ColorpickerInputView extends View {
 		const staticColorsGrid = this.staticColorsGrid;
 		const selectedColor = this.selectedColor;
 
-		staticColorsGrid.selectedColor = selectedColor;
+
+		if(selectedColor){
+			staticColorsGrid.fromString(selectedColor);
+		} else {
+			staticColorsGrid.fromString('#000000');
+		}
 
 		if (documentColorsGrid) {
 			documentColorsGrid.selectedColor = selectedColor;
