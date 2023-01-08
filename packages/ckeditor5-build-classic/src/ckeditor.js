@@ -152,6 +152,7 @@ ClassicEditor.defaultConfig = {
 		options: [
 			'default',
 			'EB Garamond',
+			'Degular',
 			'Felix Titling',
 			'Futura',
 			'Futura Light',
@@ -160,6 +161,7 @@ ClassicEditor.defaultConfig = {
 			'Novecento Medium',
 			'Novecento Normal',
 			'PF Square Sans Pro',
+			'Poppins',
 			'Raleway',
 			'Titillium Web',
 			'Titillium Web Light'
